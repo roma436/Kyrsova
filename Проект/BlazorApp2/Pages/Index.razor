@@ -1,0 +1,71 @@
+﻿@using BlazorApp2.Data
+@using myprogram.DAL.Models
+
+@using Newtonsoft.Json.Linq
+@page "/"
+@inject LoadService loadService
+
+
+<h3>Журнал</h3>
+@if (roma == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+
+
+    <table class='table'>
+        <thead>
+
+            <tr>
+                <th>Призвіще</th>
+                <th>Ім'я</th>
+                <th>По-батькові</th>
+                <th>Назва предмета </th>
+                <th>Номер групи</th>
+                <th>Кількістю годин </th>
+                <th>Тип навчання </th>
+
+            </tr>
+        </thead>
+        <tbody>
+
+            @foreach (var item in roma)
+            {
+                <tr>
+                    <td>@item.GetValue("firstName")</td>
+                    <td>@item.GetValue("secondName")</td>
+                    <td>@item.GetValue("thirdName")</td>
+                    <td>@item.GetValue("nameSubject")</td>
+                    <td>@item.GetValue("numberGroup")</td>
+                    <td>@item.GetValue("countHour")</td>
+                    <td>@item.GetValue("typehours")</td>
+                </tr>
+            }
+
+
+
+
+        </tbody>
+    </table>
+}
+
+@code {
+ 
+    IEnumerable<JObject> roma;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        await load();
+    }
+    protected async Task load()
+
+    {
+        roma = await loadService.GetZaputByCodDial();
+
+    }
+
+}

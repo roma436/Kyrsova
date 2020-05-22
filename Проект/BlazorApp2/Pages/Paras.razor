@@ -1,0 +1,157 @@
+﻿@using BlazorApp2.Data
+@using myprogram.DAL.Models
+@using Blazored.Modal;
+@page "/Para"
+@inject ParaService paraService
+
+
+<h1>міні розкклад</h1>
+
+@if (para != null && mode == MODE.Add)
+{
+    <input @bind="@koddial" placeholder="Код діяльності  " />
+    <br />
+    <input @bind="@counthours" placeholder="Кількість годин " />
+    <br />
+    
+    <label class="control-label col-md-12">Тип навчання </label>
+    <select class="selex-box" @bind="@typetraning">
+        <option value="Лекція">Лекція</option>
+        <option value="Практика">Практика</option>
+    </select>
+    <br />
+
+
+
+
+    <button @onclick="Insert" class="btn btn-primary">Вставити </button>
+
+}
+
+
+@if (para != null && mode == MODE.EditDelete) // Update & Delete form
+{
+    @*<input @bind="@koddial" placeholder="Код діяльності " />
+    <br />*@
+    <input @bind="@counthours" placeholder="Кількість годин " />
+    <br />
+    <label class="control-label col-md-12">Тип навчання </label>
+    <select class="selex-box"  @bind="@typetraning" >
+        <option value="Лекція">Лекція</option>
+        <option value="Практика">Практика</option>
+    </select>
+    <br />
+    <button @onclick="Update" class="btn btn-primary">Оновити</button>
+    <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+    <button @onclick="Delete" class="btn btn-danger">Видалити</button>
+}
+
+@if (para == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <button @onclick="Add" class="btn btn-success">Додати </button>
+    <table class='table'>
+        <thead>
+            <tr>
+                <th>Kод навчання</th>
+                <th>Кількість годин</th>
+                <th>Тип навчання</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in para)
+            {
+                <tr @onclick="(() => Show(item.KodDial.ToString()))">
+                    <td>@item.KodDial</td>
+                    <td>@item.CountHours</td>
+                    <td>@item.TypeTraning</td>
+
+
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@code {
+
+    Para[] para;
+    int koddial;
+    int counthours;
+    string typetraning;
+    
+
+    private enum MODE { None, Add, EditDelete };
+    MODE mode = MODE.None;
+    Para paras;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        await load();
+    }
+    protected async Task load()
+    {
+        para = await paraService.GetParaAsync();
+    }
+    protected async Task Insert()
+    {
+        Para p = new Para()
+        {
+            KodDial = koddial ,
+            CountHours = counthours,
+            TypeTraning = typetraning
+        };
+        await paraService.InsertParaAsync(p);
+        ClearFields();
+        await load();
+
+    }
+
+    protected void ClearFields()
+    {
+        koddial = 0;
+        counthours = 0;
+        typetraning = string.Empty;
+    }
+    protected void Add()
+    {
+
+        ClearFields();
+        mode = MODE.Add;
+    }
+    protected async Task Update()
+    {
+
+        Para p = new Para()
+        {
+            KodDial = koddial,
+            CountHours = counthours,
+            TypeTraning = typetraning
+        };
+
+        await paraService.UpdateParaAsync(koddial.ToString(), p);
+        ClearFields();
+        await load();
+        mode = MODE.None;
+    }
+
+    protected async Task Delete()
+    {
+        await paraService.DeleteParaAsync(koddial.ToString());
+        ClearFields();
+        await load();
+        mode = MODE.None;
+    }
+    protected async Task Show(string id)
+    {
+        paras = await paraService.GetParaByIdAsync(id);
+        koddial = paras.KodDial;
+        counthours = paras.CountHours;
+        typetraning = paras.TypeTraning;
+        mode = MODE.EditDelete;
+    }
+}

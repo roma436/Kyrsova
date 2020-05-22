@@ -1,0 +1,167 @@
+﻿@using BlazorApp2.Data
+@using myprogram.DAL.Models
+@page "/Load"
+@inject LoadService loadService
+
+
+<h1>Навантаженість </h1>
+
+@if (loads != null && mode == MODE.Add)
+{
+    <input @bind="@koddial" placeholder="Код діяльності  " />
+    <br />
+    <input @bind="@numbergroup" placeholder="Номер групи " />
+    <br />
+    <input @bind="@kodsubject" placeholder="Код предмета " />
+    <br />
+    <input @bind="@kodteacher" placeholder="Код викладача" />
+    <br />
+    <input @bind="@studyyear" placeholder="Навчальний рік " />
+    <br />
+    <button @onclick="Insert" class="btn btn-primary">Вставити</button>
+
+}
+
+
+@if (loads != null && mode == MODE.EditDelete) // Update & Delete form
+{
+    @*<input @bind="@koddial" placeholder="Код діяльності  " />
+        <br />*@
+    <input @bind="@numbergroup" placeholder="Номер групи " />
+    <br />
+    <input @bind="@kodsubject" placeholder="Код предмета " />
+    <br />
+    <input @bind="@kodteacher" placeholder="Код викладача" />
+    <br />
+    <input @bind="@studyyear" placeholder="Навчальний рік " />
+    <br />
+    <button @onclick="Update" class="btn btn-primary">Оновити</button>
+    <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+    <button @onclick="Delete" class="btn btn-danger">Видалити</button>
+}
+@if (loads == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <button @onclick="Add" class="btn btn-success">Додати </button>
+
+    <table class='table'>
+        <thead>
+            <tr>
+                <th>Код Навчання</th>
+                <th>Номер групи</th>
+                <th>Код Предмета </th>
+                <th>Код Викладача</th>
+                <th>Навчальний рік</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in loads)
+            {
+                <tr @onclick="(() => Show(item.KodDial.ToString()))">
+                    <td>@item.KodDial</td>
+                    <td>@item.NumberGroup</td>
+                    <td>@item.KodSubject</td>
+                    <td>@item.KodTeacher</td>
+                    <td>@item.StudyYear</td> 
+
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    Load[] loads;
+    Teacher[] teachers;
+    int koddial;
+    string numbergroup;
+    int kodsubject;
+    int kodteacher;
+    string studyyear;
+    int teach;
+
+    private enum MODE { None, Add, EditDelete };
+    MODE mode = MODE.None;
+    Load loadds;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        await load();
+    }
+    protected async Task load()
+    {
+        loads = await loadService.GetLoadAsync();
+    }
+    protected async Task Insert()
+    {
+        Load l = new Load()
+        {
+            KodDial = koddial,
+            NumberGroup = numbergroup,
+            KodSubject = kodsubject,
+            KodTeacher = kodteacher,
+            StudyYear = studyyear
+        };
+        await loadService.InsertLoadAsync(l);
+        ClearFields();
+        await load();
+        mode = MODE.None;
+    }
+
+    protected void ClearFields()
+    {
+        numbergroup = string.Empty;
+        kodsubject = 0;
+        kodteacher = 0;
+        studyyear = string.Empty;
+
+
+    }
+    protected void Add()
+    {
+        ClearFields();
+        mode = MODE.Add;
+    }
+    protected async Task Update()
+    {
+
+        Load l = new Load()
+        {
+            KodDial = koddial,
+            NumberGroup = numbergroup,
+            KodSubject = kodsubject,
+            KodTeacher = kodteacher,
+            StudyYear = studyyear
+        };
+
+        await loadService.UpdateLoadAsync(koddial.ToString(), l);
+        ClearFields();
+        await load();
+        mode = MODE.None;
+    }
+
+    protected async Task Delete()
+    {
+        await loadService.DeleteLoadAsync(koddial.ToString());
+        ClearFields();
+        await load();
+        mode = MODE.None;
+    }
+    protected async Task Show(string id)
+    {
+        loadds = await loadService.GetLoadByIdAsync(id);
+        koddial = loadds.KodDial;
+        numbergroup = loadds.NumberGroup;
+        kodsubject = loadds.KodSubject;
+        kodteacher = loadds.KodSubject;
+        studyyear = loadds.StudyYear;
+        mode = MODE.EditDelete;
+    }
+
+}

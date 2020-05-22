@@ -1,0 +1,176 @@
+﻿@using BlazorApp2.Data
+@using myprogram.DAL.Models
+@page "/Teacher"
+@inject TeacherService teacherService
+
+<h1>Викладачі</h1>
+<p>Дані про викладачів</p>
+@if (teacher != null && mode == MODE.Add)
+{
+    <input @bind="@firstname" placeholder="Призвіще " />
+    <br />
+    <input @bind="@secondname" placeholder="Ім'я " />
+    <br />
+    <input @bind="@thirdname" placeholder="Призвіще " />
+    <br />
+    <input @bind="@degree" placeholder="Ученмй ступінь " />
+    <br />
+    <input @bind="@position" placeholder="Посада" />
+    <br />
+    <input @bind="@experience" placeholder="Досвід робити  " />
+    <button @onclick="Insert" class="btn btn-primary">Вставити</button>
+
+}
+
+
+@if (teacher != null && mode == MODE.EditDelete) // Update & Delete form
+{
+    <input @bind="@firstname" placeholder="Призвіще " />
+    <br />
+    <input @bind="@secondname" placeholder="Ім'я " />
+    <br />
+    <input @bind="@thirdname" placeholder="Призвіще " />
+    <br />
+    <input @bind="@degree" placeholder="Ученмй ступінь " />
+    <br />
+    <input @bind="@position" placeholder="Посада" />
+    <br />
+    <input @bind="@experience" placeholder="Досвід робити  " />
+    <br/>
+    <button @onclick="Update" class="btn btn-primary">Оновити</button>
+    <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+    <button @onclick="Delete" class="btn btn-danger">Видалити</button>
+}
+@if (teacher == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <button @onclick="Add" class="btn btn-success">Додати</button>
+    <table class='table'>
+        <thead>
+            <tr>
+                <th>Код викладача</th>
+                <th>Призвіще</th>
+                <th>Ім'я</th>
+                <th>По-батькові</th>
+                <th>Учений ступінь </th>
+                <th>Посада</th>
+                <th>Досвід роботи </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in teacher)
+            {
+             <tr @onclick="(() => Show(item.KodTeacher.ToString()))">
+                <td>@item.KodTeacher</td>
+                <td>@item.FirstName</td>
+                <td>@item.SecondName</td>
+                <td>@item.ThirdName</td>
+                <td>@item.Degree</td>
+                <td>@item.Position</td>
+                <td>@item.Experience</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+}
+@code {
+    Teacher[] teacher;
+    int kodteacher;
+    string firstname;
+    string secondname;
+    string thirdname;
+    string degree;
+    string position;
+    string experience;
+
+    private enum MODE { None, Add, EditDelete };
+    MODE mode = MODE.None;
+    Teacher teachers;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        await load();
+    }
+    protected async Task load()
+    {
+        teacher = await teacherService.GetTeacherAsync();
+    }
+    protected async Task Insert()
+    {
+        Teacher t = new Teacher()
+        {
+            KodTeacher = kodteacher,
+            FirstName = firstname,
+            SecondName = secondname,
+            ThirdName = thirdname,
+            Degree = degree,
+            Position = position,
+            Experience = experience
+
+        };
+        await teacherService.InsertTeacherAsync(t);
+        ClearFields();
+        await load();
+    }
+    protected void ClearFields()
+    {
+        firstname = string.Empty;
+        secondname = string.Empty;
+        thirdname = string.Empty;
+        degree = string.Empty;
+        position = string.Empty;
+        experience = string.Empty;
+    }
+
+    protected void Add()
+    {
+        ClearFields();
+        mode = MODE.Add;
+    }
+    protected async Task Update()
+    {
+
+        Teacher t = new Teacher()
+        {
+
+            KodTeacher = kodteacher,
+            FirstName = firstname,
+            SecondName = secondname,
+            ThirdName = thirdname,
+            Degree = degree,
+            Position = position,
+            Experience = experience
+        };
+
+        await teacherService.UpdateTeacherAsync(kodteacher.ToString(), t);
+        ClearFields();
+        await load();
+        mode = MODE.None;
+    }
+
+    protected async Task Delete()
+    {
+        await teacherService.DeleteTeacherAsync(kodteacher.ToString());
+        ClearFields();
+        await load();
+        mode = MODE.None;
+    }
+    protected async Task Show(string id)
+    {
+        teachers = await teacherService.GetTeacherByIdAsync(id);
+        kodteacher = teachers.KodTeacher;
+        firstname = teachers.FirstName;
+        secondname = teachers.SecondName;
+        thirdname = teachers.ThirdName;
+        degree = teachers.Degree;
+        position = teachers.Position;
+        experience = teachers.Experience;
+        mode = MODE.EditDelete;
+    }
+
+}
